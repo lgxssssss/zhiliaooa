@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, redirect, url_for
 from exts import mail, db
 from flask_mail import Message
 from flask import request
@@ -6,11 +6,13 @@ from models import EmailCaptchaModel
 import string
 import random
 from .forms import RegisterForm
+from models import UserModel
+from werkzeug.security import generate_password_hash, check_password_hash
 
 bp = Blueprint("auth", __name__, url_prefix='/auth')
 @bp.route("/login")
 def login():
-    pass
+    return "欢迎来到login"
 
 # GET：从服务器上获取数据
 # POST：将客户端的数据提交给服务器
@@ -23,10 +25,16 @@ def register():
         # 表单验证：flask-wtf: wtforms
         form = RegisterForm(request.form)
         if form.validate():
-            return "success"
+            email = form.email.data
+            username = form.username.data
+            password = form.password.data
+            user = UserModel(email=email, username=username, password=generate_password_hash(password))
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for("auth.login"))
         else:
             print(form.errors)
-            return "fail"
+            return redirect(url_for("auth.register"))
 
 @bp.route("/captcha/email")
 def get_email_captcha():
