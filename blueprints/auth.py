@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template
-from exts import mail
+from flask import Blueprint, render_template, jsonify
+from exts import mail, db
 from flask_mail import Message
 from flask import request
+from models import EmailCaptchaModel
 import string
 import random
 
@@ -22,7 +23,12 @@ def get_email_captcha():
     captcha = "".join(captcha)
     message = Message(subject="知了传课注册验证码", recipients=[email], body=f"您的验证码是：{captcha}")
     mail.send(message)
-    return "success"
+    email_captcha = EmailCaptchaModel(email=email, captcha=captcha)
+    db.session.add(email_captcha)
+    db.session.commit()
+    # RESTful API
+    # {code: 200/400/500, message: "", data: {}}
+    return jsonify({"code": 200, "message": "", "data": None})
 
 @bp.route("/mail/test")
 def mial_test():
