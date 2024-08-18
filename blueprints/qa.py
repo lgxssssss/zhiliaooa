@@ -7,7 +7,8 @@ from decorators import login_required
 bp = Blueprint("qa", __name__, url_prefix='/')
 @bp.route("/")
 def login():
-    return "欢迎来到首页"
+    questions = QuestionModel.query.order_by(QuestionModel.create_time.desc()).all()
+    return render_template("index.html", questions=questions)
 
 @bp.route("/qa/public", methods=['GET', 'POST'])
 @login_required
